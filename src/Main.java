@@ -46,21 +46,10 @@ public class Main {
         exp.setElements(1.0, x4);
         solver.addEQ(exp, 9);
 
-        exp = new LpExpression();
-        exp.setElements(1.0, x1);
-        solver.addGE(exp, 0.0);
-
-        exp = new LpExpression();
-        exp.setElements(1.0, x2);
-        solver.addGE(exp, 0.0);
-
-        exp = new LpExpression();
-        exp.setElements(1.0, x3);
-        solver.addGE(exp, 0.0);
-
-        exp = new LpExpression();
-        exp.setElements(1.0, x4);
-        solver.addGE(exp, 0.0);
+        solver.setBound(x1, 0.0, Double.POSITIVE_INFINITY);
+        solver.setBound(x2, 0.0, Double.POSITIVE_INFINITY);
+        solver.setBound(x3, 0.0, Double.POSITIVE_INFINITY);
+        solver.setBound(x4, 0.0, Double.POSITIVE_INFINITY);
 
         solver.solve();
     }

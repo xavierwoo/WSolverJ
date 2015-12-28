@@ -123,7 +123,7 @@ public class LpSolver {
         canonicalSolver.setObjective(2, objPhase2, objectiveFunCPart);
     }
 
-    CanonicalVariable findBasic(CanonicalExpr cExp, CanonicalExpr obj, HashSet<CanonicalVariable> basicVars){
+    private CanonicalVariable findBasic(CanonicalExpr cExp, CanonicalExpr obj, HashSet<CanonicalVariable> basicVars){
         for(Map.Entry<CanonicalVariable, Double> entry : cExp.elements.entrySet()){
             if(entry.getValue().compareTo(1.0)==0
                     && ! obj.elements.containsKey(entry.getKey())
@@ -215,5 +215,29 @@ public class LpSolver {
      */
     public void addGE(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.GE, constant));
+    }
+
+    /**
+     * Set the boundary of a variable
+     * @param lpVariable the variable
+     * @param lb the lower bound
+     * @param ub the upper bound
+     */
+    public void setBound(LpVariable lpVariable, double lb, double ub){
+        if(Double.compare(lb, ub) != -1){
+            throw new Error("the upper bound should be larger than the lower bound");
+        }
+
+        if(Double.compare(lb, Double.NEGATIVE_INFINITY) == 1){
+            LpExpression lpExpression = new LpExpression();
+            lpExpression.setElements(1.0, lpVariable);
+            addGE(lpExpression, lb);
+        }
+
+        if(Double.compare(Double.POSITIVE_INFINITY, ub) == 1){
+            LpExpression lpExpression = new LpExpression();
+            lpExpression.setElements(ub, lpVariable);
+            addLE(lpExpression, ub);
+        }
     }
 }
