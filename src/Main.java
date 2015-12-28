@@ -27,7 +27,7 @@ public class Main {
         LpExpression obj = new LpExpression();
         obj.setElements(-3.0, x1);
         obj.setElements(1.0, x3);
-        solver.setObjectiveMax(obj, 0.0);
+        solver.setObjective(1, obj, 0.0);
 
         LpExpression exp = new LpExpression();
         exp.setElements(1.0, x1);
@@ -117,7 +117,7 @@ public class Main {
         obj.setElements(6.0, x1);
         obj.setElements(14.0, x2);
         obj.setElements(13.0, x3);
-        lpSolver.setObjectiveMax(obj, 0.0);
+        lpSolver.setObjective(1, obj, 0.0);
 
         LpExpression expr = new LpExpression();
         expr.setElements(0.5, x1);
@@ -156,7 +156,7 @@ public class Main {
         obj.setElements(2.0, y2);
         obj.setElements(-1.0, y3);
         obj.setElements(4.0, y4);
-        lpSolver.setObjectiveMax(obj, 0.0);
+        lpSolver.setObjective(1, obj, 0.0);
 
         LpExpression expr = new LpExpression();
         expr.setElements(1.0, y1);

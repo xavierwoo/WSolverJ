@@ -5,7 +5,7 @@ package wSolverJ.lpSolver;
  * Created by Xavier on 15/12/16.
  */
 public class LpConstraint {
-    static enum  CType{
+    enum  CType{
         EQ, LE, GE
     }
 

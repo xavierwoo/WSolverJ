@@ -1,7 +1,6 @@
 package wSolverJ.canonicalSolver;
 
 import java.util.HashMap;
-import java.util.Set;
 
 /**
  * Linear expression

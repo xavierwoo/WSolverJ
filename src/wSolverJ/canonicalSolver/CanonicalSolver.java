@@ -93,10 +93,6 @@ public class CanonicalSolver {
     }
 
     private void iterate(Variable variable){
-
-//        testCount++;
-//        System.out.println(testCount);
-
         Constraint constraintMin = constraints.stream()
                 .filter(c -> c.lExpression.elements.containsKey(variable)
                     && c.lExpression.elements.get(variable) > 0)
@@ -130,7 +126,6 @@ public class CanonicalSolver {
             pivotIn(varNonArti, constraint);
         }
 
-
         constraints.removeAll(redundantConstraints);
 
         for(Constraint constraint : constraints){
@@ -138,7 +133,6 @@ public class CanonicalSolver {
         }
 
         p2ObjectiveEPart.elements.entrySet().removeIf(elem -> ! elem.getKey().isNotArtificial);
-
     }
 
 

@@ -33,8 +33,6 @@ public class LpSolver {
 
     private HashMap<DVariable, ReplaceVariable> dVarToVar = new HashMap<>();
 
-//    private CanonicalObjectfun originalObj;
-//    private CanonicalObjectfun phase1Obj;
 
     public int solve() {
 
@@ -49,7 +47,6 @@ public class LpSolver {
 
         canonicalSolver.removeArtificial();
 
-        //phase1ToPhase2();
         if(canonicalSolver.solve(2)){
             System.out.println("Optimal solution is found! Objective: " + canonicalSolver.p2ObjectiveCPart);
             return 0;
@@ -67,12 +64,10 @@ public class LpSolver {
     }
 
     private void toCanonical() {
-        //ArrayList<Constraint> constraintsWithArti = new ArrayList<>();
         HashSet<Variable> basicVars = new HashSet<>();
         CanonicalExpr objPhase2 = getCanonicalObject();
         CanonicalExpr objPhase1 = new CanonicalExpr();
         double objPhase1C = 0.0;
-        //CanonicalObjectfun objPhase1 = new CanonicalObjectfun(new CanonicalExpr(), 0.0);
 
         for(LpConstraint lpConstraint : lpConstraints){
             if(lpConstraint.lpExpr.elements.keySet().size()==1
@@ -119,24 +114,6 @@ public class LpSolver {
 
             canonicalSolver.addConstraint(cExpr, constraintC, basicVar);
             basicVars.add(basicVar);
-
-//            Constraint constraint = canonicalSolver.addConstraint(cExpr, sign * lpConstraint.constant);
-//
-//            //add artificial variable
-//            if (cExpr.getVariableSet().stream().filter(var ->
-//                    cExpr.getElementCoeff(var).compareTo(1.0) == 0 && objPhase2.getElementCoeff(var).compareTo(0.0) == 0)
-//                    .count() == 0) {
-//
-//                for (Variable var : cExpr.getVariableSet()) {
-//                    objPhase1.setElement(objPhase1.getElementCoeff(var) + cExpr.getElementCoeff(var), var);
-//                }
-//
-//                Variable artificialVar = new Variable(false);
-//
-//                //objPhase1.expr.setElement(-1.0, artificialVar);
-//                cExpr.setElement(1.0, artificialVar);
-//                objPhase1C -= constraint.rConstant;
-//            }
         }
 
         if(! objPhase1.elements.isEmpty()){
@@ -156,15 +133,6 @@ public class LpSolver {
         }
         return null;
     }
-
-//    private void phase1ToPhase2(){
-//
-//        canonicalSolver.p2ObjectiveEPart.removeArtiVar();
-//
-//        for(Constraint constraint : canonicalSolver.constraints){
-//            constraint.lExpression.removeArtiVar();
-//        }
-//    }
 
     private CanonicalExpr getCanonicalObject() {
         CanonicalExpr objExpr = new CanonicalExpr();
@@ -193,42 +161,37 @@ public class LpSolver {
 
 
         for (LpConstraint lpConstraint : cGroup.get(false)) {
-            for (DVariable dVariable : lpConstraint.lpExpr.elements.keySet()) {
-                if (!dVarToVar.containsKey(dVariable)) {
-                    dVarToVar.put(dVariable, new ReplaceVariable(new Variable(), new Variable()));
-                }
-            }
+            lpConstraint.lpExpr.elements.keySet().stream().filter(dVariable -> !dVarToVar.containsKey(dVariable))
+                    .forEach(dVariable -> dVarToVar.put(dVariable, new ReplaceVariable(new Variable(), new Variable())));
         }
     }
 
-    public void setObjectiveMax(LpExpression exp, double constant) {
-        objReversal = 1.0;
+    public void setObjective(int type, LpExpression exp, double constant) {
+
+        switch (type){
+            case 1 :
+                objReversal = 1.0;
+                break;
+            case 2:
+                objReversal = -1.0;
+                break;
+            default:
+                throw new Error("The parameter \"type\" can only be 1 or -1");
+        }
+
         objectiveFunEPart = exp;
         objectiveFunCPart = constant;
-
-        //allDVars.addAll(exp.elements.keySet());
-    }
-
-    public void setObjectiveMin(LpExpression exp, double constant) {
-        objReversal = -1.0;
-        objectiveFunEPart = exp;
-        objectiveFunCPart = constant;
-
-        //allDVars.addAll(exp.elements.keySet());
     }
 
     public void addEQ(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.EQ, constant));
-        //allDVars.addAll(exp.elements.keySet());
     }
 
     public void addLE(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.LE, constant));
-        //allDVars.addAll(exp.elements.keySet());
     }
 
     public void addGE(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.GE, constant));
-        //allDVars.addAll(exp.elements.keySet());
     }
 }
