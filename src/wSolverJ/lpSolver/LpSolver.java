@@ -1,9 +1,5 @@
 package wSolverJ.lpSolver;
 
-import wSolverJ.canonicalSolver.CanonicalExpr;
-import wSolverJ.canonicalSolver.CanonicalSolver;
-import wSolverJ.canonicalSolver.Variable;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,10 +10,10 @@ import java.util.stream.Collectors;
 public class LpSolver {
 
     private class ReplaceVariable {
-        Variable varA;
-        Variable varB;
+        CanonicalVariable varA;
+        CanonicalVariable varB;
 
-        ReplaceVariable(Variable va, Variable vb) {
+        ReplaceVariable(CanonicalVariable va, CanonicalVariable vb) {
             varA = va;
             varB = vb;
         }
@@ -31,7 +27,7 @@ public class LpSolver {
 
     private CanonicalSolver canonicalSolver = new CanonicalSolver();
 
-    private HashMap<DVariable, ReplaceVariable> dVarToVar = new HashMap<>();
+    private HashMap<LpVariable, ReplaceVariable> dVarToVar = new HashMap<>();
 
     /**
      * Solve the problem
@@ -68,7 +64,7 @@ public class LpSolver {
     }
 
     private void toCanonical() {
-        HashSet<Variable> basicVars = new HashSet<>();
+        HashSet<CanonicalVariable> basicVars = new HashSet<>();
         CanonicalExpr objPhase2 = getCanonicalObject();
         CanonicalExpr objPhase1 = new CanonicalExpr();
         double objPhase1C = 0.0;
@@ -82,11 +78,11 @@ public class LpSolver {
 
             CanonicalExpr cExpr = new CanonicalExpr();
             double sign = lpConstraint.constant >= 0 ? 1 : -1;
-            for (Map.Entry<DVariable, Double> LpElem : lpConstraint.lpExpr.elements.entrySet()) {
-                DVariable dVariable = LpElem.getKey();
+            for (Map.Entry<LpVariable, Double> LpElem : lpConstraint.lpExpr.elements.entrySet()) {
+                LpVariable lpVariable = LpElem.getKey();
                 double coeff = sign * LpElem.getValue();
 
-                ReplaceVariable rVar = dVarToVar.get(dVariable);
+                ReplaceVariable rVar = dVarToVar.get(lpVariable);
                 cExpr.setElement(coeff, rVar.varA);
                 if (rVar.varB != null) {
                     cExpr.setElement(0 - coeff, rVar.varB);
@@ -95,22 +91,22 @@ public class LpSolver {
 
             switch (lpConstraint.type) {
                 case GE://add surplus variable
-                    cExpr.setElement(0 - sign, new Variable());
+                    cExpr.setElement(0 - sign, new CanonicalVariable());
                     break;
                 case LE://add slack variable
-                    cExpr.setElement(sign, new Variable());
+                    cExpr.setElement(sign, new CanonicalVariable());
                     break;
 
             }
 
-            Variable basicVar = findBasic(cExpr, objPhase2, basicVars);
+            CanonicalVariable basicVar = findBasic(cExpr, objPhase2, basicVars);
             double constraintC = sign * lpConstraint.constant;
             if(basicVar == null){
-                for(Variable var : cExpr.elements.keySet()){
+                for(CanonicalVariable var : cExpr.elements.keySet()){
                     objPhase1.setElement(objPhase1.getElementCoeff(var) + cExpr.getElementCoeff(var), var);
                 }
 
-                basicVar = new Variable(false);
+                basicVar = new CanonicalVariable(false);
 
                 cExpr.setElement(1.0, basicVar);
                 objPhase1C -= constraintC;
@@ -127,8 +123,8 @@ public class LpSolver {
         canonicalSolver.setObjective(2, objPhase2, objectiveFunCPart);
     }
 
-    Variable findBasic(CanonicalExpr cExp, CanonicalExpr obj, HashSet<Variable> basicVars){
-        for(Map.Entry<Variable, Double> entry : cExp.elements.entrySet()){
+    CanonicalVariable findBasic(CanonicalExpr cExp, CanonicalExpr obj, HashSet<CanonicalVariable> basicVars){
+        for(Map.Entry<CanonicalVariable, Double> entry : cExp.elements.entrySet()){
             if(entry.getValue().compareTo(1.0)==0
                     && ! obj.elements.containsKey(entry.getKey())
                     && ! basicVars.contains(entry.getKey())){
@@ -140,10 +136,10 @@ public class LpSolver {
 
     private CanonicalExpr getCanonicalObject() {
         CanonicalExpr objExpr = new CanonicalExpr();
-        for (Map.Entry<DVariable, Double> LpElem : objectiveFunEPart.elements.entrySet()) {
-            DVariable dVariable = LpElem.getKey();
+        for (Map.Entry<LpVariable, Double> LpElem : objectiveFunEPart.elements.entrySet()) {
+            LpVariable lpVariable = LpElem.getKey();
             double coeff = LpElem.getValue();
-            ReplaceVariable rVar = dVarToVar.get(dVariable);
+            ReplaceVariable rVar = dVarToVar.get(lpVariable);
             objExpr.setElement(objReversal * coeff, rVar.varA);
             if (rVar.varB != null) {
                 objExpr.setElement(0 - coeff, rVar.varB);
@@ -157,16 +153,16 @@ public class LpSolver {
                 .collect(Collectors.partitioningBy(c -> c.lpExpr.elements.size() == 1 && c.type == LpConstraint.CType.GE));
 
         for (LpConstraint lpConstraint : cGroup.get(true)) {
-            DVariable dvar = lpConstraint.lpExpr.elements.keySet().iterator().next();
+            LpVariable dvar = lpConstraint.lpExpr.elements.keySet().iterator().next();
             if (!dVarToVar.containsKey(dvar)) {
-                dVarToVar.put(dvar, new ReplaceVariable(new Variable(), null));
+                dVarToVar.put(dvar, new ReplaceVariable(new CanonicalVariable(), null));
             }
         }
 
 
         for (LpConstraint lpConstraint : cGroup.get(false)) {
             lpConstraint.lpExpr.elements.keySet().stream().filter(dVariable -> !dVarToVar.containsKey(dVariable))
-                    .forEach(dVariable -> dVarToVar.put(dVariable, new ReplaceVariable(new Variable(), new Variable())));
+                    .forEach(dVariable -> dVarToVar.put(dVariable, new ReplaceVariable(new CanonicalVariable(), new CanonicalVariable())));
         }
     }
 

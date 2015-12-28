@@ -1,11 +1,9 @@
-import wSolverJ.canonicalSolver.CanonicalSolver;
-import wSolverJ.canonicalSolver.CanonicalExpr;
-import wSolverJ.canonicalSolver.Variable;
-import wSolverJ.lpSolver.DVariable;
+import wSolverJ.lpSolver.LpVariable;
 import wSolverJ.lpSolver.LpExpression;
 import wSolverJ.lpSolver.LpSolver;
 
 /**
+ * Demos here!
  * Created by Xavier on 15/12/15.
  */
 public class Main {
@@ -19,10 +17,10 @@ public class Main {
     static void testP1toP2(){
         LpSolver solver = new LpSolver();
 
-        DVariable x1 = new DVariable();
-        DVariable x2 = new DVariable();
-        DVariable x3 = new DVariable();
-        DVariable x4 = new DVariable();
+        LpVariable x1 = new LpVariable();
+        LpVariable x2 = new LpVariable();
+        LpVariable x3 = new LpVariable();
+        LpVariable x4 = new LpVariable();
 
         LpExpression obj = new LpExpression();
         obj.setElements(-3.0, x1);
@@ -70,9 +68,9 @@ public class Main {
 
     static void test2(){
         LpSolver lpSolver = new LpSolver();
-        DVariable x1 = new DVariable();
-        DVariable x2 = new DVariable();
-        DVariable x3 = new DVariable();
+        LpVariable x1 = new LpVariable();
+        LpVariable x2 = new LpVariable();
+        LpVariable x3 = new LpVariable();
 
         LpExpression obj = new LpExpression();
         obj.setElements(6.0, x1);
@@ -107,10 +105,10 @@ public class Main {
 
     static void testLpSolver(){
         LpSolver lpSolver = new LpSolver();
-        DVariable y1 = new DVariable();
-        DVariable y2 = new DVariable();
-        DVariable y3 = new DVariable();
-        DVariable y4 = new DVariable();
+        LpVariable y1 = new LpVariable();
+        LpVariable y2 = new LpVariable();
+        LpVariable y3 = new LpVariable();
+        LpVariable y4 = new LpVariable();
 
         LpExpression obj = new LpExpression();
         obj.setElements(-3.0, y1);

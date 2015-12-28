@@ -4,7 +4,7 @@ package wSolverJ.lpSolver;
  * Linear program constraint
  * Created by Xavier on 15/12/16.
  */
-public class LpConstraint {
+class LpConstraint {
     enum  CType{
         EQ, LE, GE
     }
@@ -13,7 +13,7 @@ public class LpConstraint {
     CType type;
     Double constant;
 
-    public LpConstraint(LpExpression exp, CType ct, Double c){
+    LpConstraint(LpExpression exp, CType ct, Double c){
         lpExpr = exp;
         type = ct;
         constant = c;

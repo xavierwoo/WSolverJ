@@ -1,4 +1,4 @@
-package wSolverJ.canonicalSolver;
+package wSolverJ.lpSolver;
 
 import java.util.*;
 
@@ -6,25 +6,25 @@ import java.util.*;
  * the linear program canonical form solver
  * Created by Xavier on 15/12/15.
  */
-public class CanonicalSolver {
+class CanonicalSolver {
 
 
-    public CanonicalExpr p2ObjectiveEPart = new CanonicalExpr();
-    public double p2ObjectiveCPart = 0.0;
+    CanonicalExpr p2ObjectiveEPart = new CanonicalExpr();
+    double p2ObjectiveCPart = 0.0;
 
-    public CanonicalExpr p1ObjectiveEPart = null;
-    public double p1ObjectiveCPart = 0.0;
+    CanonicalExpr p1ObjectiveEPart = null;
+    double p1ObjectiveCPart = 0.0;
 
 
-    public ArrayList<Constraint> constraints = new ArrayList<>();
+    ArrayList<CanonicalConstraint> constraints = new ArrayList<>();
 
-    public Constraint addConstraint(CanonicalExpr expr, double cnst, Variable basicVar){
-        Constraint constraint = new Constraint(expr, cnst, basicVar);
+    CanonicalConstraint addConstraint(CanonicalExpr expr, double cnst, CanonicalVariable basicVar){
+        CanonicalConstraint constraint = new CanonicalConstraint(expr, cnst, basicVar);
         constraints.add(constraint);
         return constraint;
     }
 
-    public void setObjective(int phase, CanonicalExpr expr, double cnst){
+    void setObjective(int phase, CanonicalExpr expr, double cnst){
         switch (phase){
             case 1:
                 p1ObjectiveEPart = expr;
@@ -53,7 +53,7 @@ public class CanonicalSolver {
 
     private boolean unboundCriterion(){
 
-        for(Map.Entry<Variable, Double> elem : p2ObjectiveEPart.elements.entrySet()){
+        for(Map.Entry<CanonicalVariable, Double> elem : p2ObjectiveEPart.elements.entrySet()){
             if(elem.getValue() < 0)continue;
 
             if(constraints.stream().filter(c->
@@ -65,20 +65,20 @@ public class CanonicalSolver {
         return false;
     }
 
-    public boolean solve(int phase){
+    boolean solve(int phase){
         if(unboundCriterion()){
             return false;
         }
 
         while(! optimalityCriterion(phase)){
-            Variable var = evaluatePivot(phase);
+            CanonicalVariable var = evaluatePivot(phase);
             iterate(var);
         }
 
         return true;
     }
 
-    private Variable evaluatePivot(int phase){
+    private CanonicalVariable evaluatePivot(int phase){
         switch (phase){
             case 1:
                 return p1ObjectiveEPart.elements.entrySet().stream()
@@ -92,8 +92,8 @@ public class CanonicalSolver {
         }
     }
 
-    private void iterate(Variable variable){
-        Constraint constraintMin = constraints.stream()
+    private void iterate(CanonicalVariable variable){
+        CanonicalConstraint constraintMin = constraints.stream()
                 .filter(c -> c.lExpression.elements.containsKey(variable)
                     && c.lExpression.elements.get(variable) > 0)
                 .min(
@@ -104,20 +104,20 @@ public class CanonicalSolver {
         pivotIn(variable, constraintMin);
     }
 
-    private void transform(double cf, CanonicalExpr expr, Map<Variable, Double> elems){
-        for(Map.Entry<Variable, Double> elem : elems.entrySet()){
-            Variable var = elem.getKey();
+    private void transform(double cf, CanonicalExpr expr, Map<CanonicalVariable, Double> elems){
+        for(Map.Entry<CanonicalVariable, Double> elem : elems.entrySet()){
+            CanonicalVariable var = elem.getKey();
             expr.setElement(
                     expr.getElementCoeff(var) - cf * elem.getValue(), var);
         }
     }
 
 
-    public void removeArtificial(){
-        ArrayList<Constraint> redundantConstraints = new ArrayList<>();
-        for(Constraint constraint : constraints){
+    void removeArtificial(){
+        ArrayList<CanonicalConstraint> redundantConstraints = new ArrayList<>();
+        for(CanonicalConstraint constraint : constraints){
             if(constraint.basic.isNotArtificial)continue;
-            Variable varNonArti = findNonArtiV(constraint);
+            CanonicalVariable varNonArti = findNonArtiV(constraint);
             if(varNonArti == null){
                 redundantConstraints.add(constraint);
                 continue;
@@ -128,7 +128,7 @@ public class CanonicalSolver {
 
         constraints.removeAll(redundantConstraints);
 
-        for(Constraint constraint : constraints){
+        for(CanonicalConstraint constraint : constraints){
             constraint.lExpression.elements.entrySet().removeIf(elem -> ! elem.getKey().isNotArtificial);
         }
 
@@ -136,7 +136,7 @@ public class CanonicalSolver {
     }
 
 
-    private void pivotIn(Variable variable, Constraint constraint){
+    private void pivotIn(CanonicalVariable variable, CanonicalConstraint constraint){
         double coeff = constraint.lExpression.elements.get(variable);
         constraint.lExpression.elements.replaceAll( (var, c)-> c / coeff);
 
@@ -160,8 +160,8 @@ public class CanonicalSolver {
         }
     }
 
-    private Variable findNonArtiV(Constraint c){
-        for(Variable var : c.lExpression.elements.keySet()){
+    private CanonicalVariable findNonArtiV(CanonicalConstraint c){
+        for(CanonicalVariable var : c.lExpression.elements.keySet()){
             if(var.isNotArtificial){
                 return var;
             }

@@ -1,4 +1,4 @@
-package wSolverJ.canonicalSolver;
+package wSolverJ.lpSolver;
 
 import java.util.HashMap;
 
@@ -6,10 +6,10 @@ import java.util.HashMap;
  * Linear expression
  * Created by Xavier on 15/12/15.
  */
-public class CanonicalExpr {
-    public HashMap<Variable, Double> elements = new HashMap<>();
+class CanonicalExpr {
+    HashMap<CanonicalVariable, Double> elements = new HashMap<>();
 
-    public void setElement(double coefficient, Variable variable){
+    void setElement(double coefficient, CanonicalVariable variable){
         if(Double.compare(coefficient, 0.0) == 0){
             elements.remove(variable);
         }else{
@@ -17,7 +17,7 @@ public class CanonicalExpr {
         }
     }
 
-    public Double getElementCoeff(Variable variable){
+    Double getElementCoeff(CanonicalVariable variable){
         return elements.containsKey(variable) ? elements.get(variable) : 0.0;
     }
 }
