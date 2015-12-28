@@ -1,7 +1,6 @@
 package wSolverJ.canonicalSolver;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * the linear program canonical form solver
@@ -9,7 +8,6 @@ import java.util.stream.Collectors;
  */
 public class CanonicalSolver {
 
-    int testCount = 0;
 
     public CanonicalExpr p2ObjectiveEPart = new CanonicalExpr();
     public double p2ObjectiveCPart = 0.0;
@@ -74,7 +72,7 @@ public class CanonicalSolver {
 
         while(! optimalityCriterion(phase)){
             Variable var = evaluatePivot(phase);
-            pivot(var);
+            iterate(var);
         }
 
         return true;
@@ -87,7 +85,6 @@ public class CanonicalSolver {
                         .max( (elem1, elem2) -> Double.compare(elem1.getValue(), elem2.getValue())).get().getKey();
 
             case 2:
-                //return p2ObjectiveEPart.elements.entrySet().stream().filter(elem -> elem.getKey().isNotArtificial)
                 return p2ObjectiveEPart.elements.entrySet().stream()
                         .max( (elem1, elem2) -> Double.compare(elem1.getValue(), elem2.getValue())).get().getKey();
             default:
@@ -95,7 +92,7 @@ public class CanonicalSolver {
         }
     }
 
-    private void pivot(Variable variable){
+    private void iterate(Variable variable){
 
 //        testCount++;
 //        System.out.println(testCount);
@@ -108,29 +105,7 @@ public class CanonicalSolver {
                             c1.rConstant / c1.lExpression.elements.get(variable),
                             c2.rConstant / c2.lExpression.elements.get(variable)) ).get();
 
-        double coeff = constraintMin.lExpression.elements.get(variable);
-
-        constraintMin.lExpression.elements.replaceAll( (var, c)-> c / coeff );
-
-        constraintMin.rConstant /= coeff;
-
-        constraintMin.basic = variable;
-
-        constraints.stream().filter(c -> c != constraintMin).forEach( c -> {
-            double cf = c.lExpression.getElementCoeff(variable);
-            transform(cf, c.lExpression, constraintMin.lExpression.elements);
-            c.rConstant -= cf * constraintMin.rConstant;
-        });
-
-        double coeffObj = p2ObjectiveEPart.getElementCoeff(variable);
-        transform(coeffObj, p2ObjectiveEPart, constraintMin.lExpression.elements);
-        p2ObjectiveCPart += coeffObj * constraintMin.rConstant;
-
-        if(p1ObjectiveEPart != null){
-            coeffObj = p1ObjectiveEPart.getElementCoeff(variable);
-            transform(coeffObj, p1ObjectiveEPart, constraintMin.lExpression.elements);
-            p1ObjectiveCPart += coeffObj * constraintMin.rConstant;
-        }
+        pivotIn(variable, constraintMin);
     }
 
     private void transform(double cf, CanonicalExpr expr, Map<Variable, Double> elems){
@@ -143,38 +118,16 @@ public class CanonicalSolver {
 
 
     public void removeArtificial(){
-        //HashSet<Variable> harmlessArtiVars = new HashSet<>();
         ArrayList<Constraint> redundantConstraints = new ArrayList<>();
         for(Constraint constraint : constraints){
             if(constraint.basic.isNotArtificial)continue;
             Variable varNonArti = findNonArtiV(constraint);
             if(varNonArti == null){
-                //harmlessArtiVars.add(constraint.basic);
                 redundantConstraints.add(constraint);
                 continue;
             }
 
-            double coeff = constraint.lExpression.getElementCoeff(varNonArti);
-            constraint.lExpression.elements.replaceAll( (var, c) -> c / coeff);
-            constraint.rConstant /= coeff;
-            constraint.basic = varNonArti;
-
-            constraints.stream().filter(c -> c != constraint).forEach( c -> {
-                double cf = c.lExpression.getElementCoeff(varNonArti);
-                transform(cf, c.lExpression, constraint.lExpression.elements);
-                c.rConstant -= cf * constraint.rConstant;
-            });
-
-
-            double coeffObj = p2ObjectiveEPart.getElementCoeff(varNonArti);
-            transform(coeffObj, p2ObjectiveEPart, constraint.lExpression.elements);
-            p2ObjectiveCPart += coeffObj * constraint.rConstant;
-
-            if(p1ObjectiveEPart != null){
-                coeffObj = p1ObjectiveEPart.getElementCoeff(varNonArti);
-                transform(coeffObj, p1ObjectiveEPart, constraint.lExpression.elements);
-                p1ObjectiveCPart += coeffObj * constraint.rConstant;
-            }
+            pivotIn(varNonArti, constraint);
         }
 
 
@@ -188,52 +141,28 @@ public class CanonicalSolver {
 
     }
 
-    public void removeArtificial_o(){
 
-        //collect the artificial variables that can be removed
-        HashSet<Variable> moveAbleArtiV = new HashSet<>();
-        for(Iterator<Map.Entry<Variable, Double>> elemIt = p2ObjectiveEPart.elements.entrySet().iterator();
-                elemIt.hasNext(); ){
-            Map.Entry<Variable, Double> entry = elemIt.next();
-            if(! entry.getKey().isNotArtificial){
-                moveAbleArtiV.add(entry.getKey());
-                elemIt.remove();
-            }
-        }
+    private void pivotIn(Variable variable, Constraint constraint){
+        double coeff = constraint.lExpression.elements.get(variable);
+        constraint.lExpression.elements.replaceAll( (var, c)-> c / coeff);
 
-        //remove non basic artificial variables
-        HashMap<Constraint, Variable> unMoveAbleArtiVInC = new HashMap<>();
-        for(Constraint c : constraints){
-            for(Iterator<Map.Entry<Variable, Double>> elemIt = c.lExpression.elements.entrySet().iterator();
-                    elemIt.hasNext(); ){
-                Map.Entry<Variable, Double> entry = elemIt.next();
+        constraint.rConstant /= coeff;
+        constraint.basic = variable;
 
-                if(! entry.getKey().isNotArtificial){
-                    if(moveAbleArtiV.contains(entry.getKey())){
-                        elemIt.remove();
-                    }else{
-                        unMoveAbleArtiVInC.put(c, entry.getKey());
-                    }
-                }
-            }
-        }
+        constraints.stream().filter(c -> c != constraint).forEach( c -> {
+            double cf = c.lExpression.getElementCoeff(variable);
+            transform(cf, c.lExpression, constraint.lExpression.elements);
+            c.rConstant -= cf * constraint.rConstant;
+        });
 
-        //remove the rest artificial variables
-        for(Map.Entry<Constraint, Variable> entry : unMoveAbleArtiVInC.entrySet()){
-            Variable nonArtiV = findNonArtiV(entry.getKey());
-            if(nonArtiV != null){
-                //double coef = entry.getKey().lExpression.elements.get(entry.getValue());
+        double coeffObj = p2ObjectiveEPart.getElementCoeff(variable);
+        transform(coeffObj, p2ObjectiveEPart, constraint.lExpression.elements);
+        p2ObjectiveCPart += coeffObj * constraint.rConstant;
 
-                constraints.stream().filter(c->c != entry.getKey()).forEach( c-> {
-                    double cf = c.lExpression.getElementCoeff(entry.getValue());
-                    transform(cf, c.lExpression, entry.getKey().lExpression.elements);
-                    c.rConstant -= cf * entry.getKey().rConstant;
-                });
-
-                double coeffObj = p2ObjectiveEPart.getElementCoeff(entry.getValue());
-                transform(coeffObj, p2ObjectiveEPart, entry.getKey().lExpression.elements);
-                p2ObjectiveCPart += coeffObj * entry.getKey().rConstant;
-            }
+        if(p1ObjectiveEPart != null){
+            coeffObj = p1ObjectiveEPart.getElementCoeff(variable);
+            transform(coeffObj, p1ObjectiveEPart, constraint.lExpression.elements);
+            p1ObjectiveCPart += coeffObj * constraint.rConstant;
         }
     }
 

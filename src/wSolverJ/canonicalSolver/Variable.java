@@ -5,10 +5,6 @@ package wSolverJ.canonicalSolver;
  * Created by Xavier on 15/12/15.
  */
 public class Variable {
-//    static public enum Type{
-//        NORMAL, SLACK, ARTIFICIAL
-//    }
-
     public final boolean isNotArtificial;
 
     public Variable(){

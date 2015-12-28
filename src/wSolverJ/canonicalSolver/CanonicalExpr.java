@@ -21,12 +21,4 @@ public class CanonicalExpr {
     public Double getElementCoeff(Variable variable){
         return elements.containsKey(variable) ? elements.get(variable) : 0.0;
     }
-
-    public Set<Variable> getVariableSet(){
-        return elements.keySet();
-    }
-
-//    public void removeArtiVar(){
-//        elements.entrySet().removeIf(var -> ! var.getKey().isNotArtificial);
-//    }
 }

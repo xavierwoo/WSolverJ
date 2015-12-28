@@ -2,7 +2,6 @@ package wSolverJ.lpSolver;
 
 import wSolverJ.canonicalSolver.CanonicalExpr;
 import wSolverJ.canonicalSolver.CanonicalSolver;
-import wSolverJ.canonicalSolver.Constraint;
 import wSolverJ.canonicalSolver.Variable;
 
 import java.util.*;
@@ -13,16 +12,6 @@ import java.util.stream.Collectors;
  * Created by Xavier on 15/12/16.
  */
 public class LpSolver {
-
-    private class CanonicalObjectfun {
-        CanonicalExpr expr;
-        Double cnst;
-
-        CanonicalObjectfun(CanonicalExpr e, double c) {
-            expr = e;
-            cnst = c;
-        }
-    }
 
     private class ReplaceVariable {
         Variable varA;
@@ -71,17 +60,10 @@ public class LpSolver {
     }
 
     private boolean findFeasibleSolution(){
-        if(canonicalSolver.p1ObjectiveEPart != null) {
-            if (canonicalSolver.solve(1) && Double.compare(canonicalSolver.p1ObjectiveCPart, 0.0) == 0) {
 
-                return true;
-            } else {
-
-                return false;
-            }
-        }else{
-            return true;
-        }
+        return canonicalSolver.p1ObjectiveEPart == null
+                ||
+             (canonicalSolver.solve(1) && Double.compare(canonicalSolver.p1ObjectiveCPart, 0.0) == 0);
     }
 
     private void toCanonical() {
@@ -157,7 +139,7 @@ public class LpSolver {
 //            }
         }
 
-        if(! objPhase1.getVariableSet().isEmpty()){
+        if(! objPhase1.elements.isEmpty()){
             canonicalSolver.setObjective(1, objPhase1, objPhase1C);
         }
 
