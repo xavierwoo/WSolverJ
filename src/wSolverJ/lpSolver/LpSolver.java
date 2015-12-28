@@ -33,7 +33,11 @@ public class LpSolver {
 
     private HashMap<DVariable, ReplaceVariable> dVarToVar = new HashMap<>();
 
-
+    /**
+     * Solve the problem
+     * @return the state of the result:
+     * -1 for no feasible solution, 1 for unbounded problem and 0 for optimal solution.
+     */
     public int solve() {
 
         determineReplaceVars();
@@ -166,6 +170,13 @@ public class LpSolver {
         }
     }
 
+
+    /**
+     * Set the objective function of the problem
+     * @param type 1 for maximize problem, -1 for minimize problem
+     * @param exp the objective function
+     * @param constant the constant part of the objective function
+     */
     public void setObjective(int type, LpExpression exp, double constant) {
 
         switch (type){
@@ -183,14 +194,29 @@ public class LpSolver {
         objectiveFunCPart = constant;
     }
 
+    /**
+     * Add an equality constraint
+     * @param exp the expression on the left
+     * @param constant the constant on the right
+     */
     public void addEQ(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.EQ, constant));
     }
 
+    /**
+     * Add a less equal inequality constraint
+     * @param exp the expression on the left
+     * @param constant the expression on the right
+     */
     public void addLE(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.LE, constant));
     }
 
+    /**
+     * Add a greater equal inequality constraint
+     * @param exp the expression on the left
+     * @param constant the expression on the right
+     */
     public void addGE(LpExpression exp, double constant) {
         lpConstraints.add(new LpConstraint(exp, LpConstraint.CType.GE, constant));
     }
