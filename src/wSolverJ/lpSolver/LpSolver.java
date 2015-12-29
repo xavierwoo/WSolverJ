@@ -240,4 +240,41 @@ public class LpSolver {
             addLE(lpExpression, ub);
         }
     }
+
+    /**
+     * Get the value of the variable
+     * @param variable the variable
+     * @return the value
+     */
+    public double getVariableValue(LpVariable variable){
+
+        ReplaceVariable rVar = dVarToVar.get(variable);
+
+        if(rVar == null){
+            throw new Error("No such variable in the problem!");
+        }
+
+        if(canonicalSolver.varValues == null){
+            canonicalSolver.getVariableValues();
+        }
+
+        Double x1 = canonicalSolver.varValues.get(rVar.varA);
+        x1 = x1 == null ? 0.0 : x1;
+
+        Double x2 = 0.0;
+        if(rVar.varB != null){
+            x2 = canonicalSolver.varValues.get(rVar.varB);
+            x2 = x2 == null ? 0.0 : x2;
+        }
+
+        return x1 - x2;
+    }
+
+    /**
+     * Get the optimal objective value
+     * @return the optimal objective value
+     */
+    public double getObjectiveValue(){
+        return canonicalSolver.p2ObjectiveCPart;
+    }
 }

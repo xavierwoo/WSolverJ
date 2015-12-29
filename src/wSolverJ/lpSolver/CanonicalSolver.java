@@ -18,6 +18,8 @@ class CanonicalSolver {
 
     ArrayList<CanonicalConstraint> constraints = new ArrayList<>();
 
+    HashMap<CanonicalVariable, Double> varValues = null;
+
     CanonicalConstraint addConstraint(CanonicalExpr expr, double cnst, CanonicalVariable basicVar){
         CanonicalConstraint constraint = new CanonicalConstraint(expr, cnst, basicVar);
         constraints.add(constraint);
@@ -167,5 +169,13 @@ class CanonicalSolver {
             }
         }
         return null;
+    }
+
+    void getVariableValues(){
+        varValues = new HashMap<>();
+
+        for(CanonicalConstraint constraint : constraints){
+            varValues.put(constraint.basic, constraint.rConstant);
+        }
     }
 }

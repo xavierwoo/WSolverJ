@@ -52,6 +52,12 @@ public class Main {
         solver.setBound(x4, 0.0, Double.POSITIVE_INFINITY);
 
         solver.solve();
+
+        System.out.println("Objective : " + solver.getObjectiveValue());
+        System.out.println("x1 = " + solver.getVariableValue(x1));
+        System.out.println("x2 = " + solver.getVariableValue(x2));
+        System.out.println("x3 = " + solver.getVariableValue(x3));
+        System.out.println("x4 = " + solver.getVariableValue(x4));
     }
 
 
